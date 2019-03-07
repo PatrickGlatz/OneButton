@@ -7,6 +7,8 @@
  * @author Matthias Hertel, https://www.mathertel.de
  * @Copyright Copyright (c) by Matthias Hertel, https://www.mathertel.de.
  *
+ * @editor Patrick Glatz
+ * 
  * This work is licensed under a BSD style license. See
  * http://www.mathertel.de/License.aspx
  *
@@ -87,6 +89,12 @@ void OneButton::attachDoubleClick(callbackFunction newFunction)
 {
   _doubleClickFunc = newFunction;
 } // attachDoubleClick
+
+// save function for doubleClick event
+void OneButton::attachTripleClick(callbackFunction newFunction)
+{
+  _tripleClickFunc = newFunction;
+} // attachTripleClick
 
 
 // save function for press event
@@ -201,14 +209,51 @@ void OneButton::tick(bool activeLevel)
       _startTime = now; // remember starting time
     } // if
 
-  } else if (_state == 3) { // waiting for menu pin being released finally.
+      
+  } else if (_state == 3) {
+      
+      if ((!activeLevel) &&
+          ((unsigned long)(now - _startTime) < _debounceTicks)) {
+          // button was released to quickly so I assume some debouncing.
+          // go back to state 0 without calling a function.
+          _state = 0;
+          
+      } else if (!activeLevel) {
+          _state = 4; // step to state 2
+          _stopTime = now; // remember stopping time
+          
+      } else if ((activeLevel) &&
+                 ((unsigned long)(now - _startTime) > _pressTicks)) {
+          // somebody presses the second press very long ...
+          // wait. Stay in this state.
+      } else {
+          // wait. Stay in this state.
+      }
+      
+
+  } else if (_state == 4) {
+      if (_tripleClickFunc == NULL ||
+          (unsigned long)(now - _startTime) > _clickTicks) {
+          //this was a double short click
+          if (_doubleClickFunc)
+              _doubleClickFunc();
+          _state = 0; // restart.
+          
+      } else if ((activeLevel) &&
+                 ((unsigned long)(now - _stopTime) > _debounceTicks)) {
+          _state = 5; // step to state 5
+          _startTime = now; //remember starting time
+      }
+      
+      
+  } else if (_state == 5) { // waiting for menu pin being released finally.
     // Stay here for at least _debounceTicks because else we might end up in
     // state 1 if the button bounces for too long.
     if ((!activeLevel) &&
         ((unsigned long)(now - _startTime) > _debounceTicks)) {
       // this was a 2 click sequence.
-      if (_doubleClickFunc)
-        _doubleClickFunc();
+      if (_tripleClickFunc)
+        _tripleClickFunc();
       _state = 0; // restart.
       _stopTime = now; // remember stopping time
     } // if
