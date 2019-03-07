@@ -18,6 +18,7 @@
 // sources of input.
 // 26.09.2018 Initialization moved into class declaration.
 // 26.09.2018 Jay M Ericsson: compiler warnings removed.
+// 07.03.2019 Patrick Glatz: Triple click implemented as finite-state machine state 4 and 5
 // -----
 
 #ifndef OneButton_h
@@ -55,6 +56,7 @@ public:
   // specified way.
   void attachClick(callbackFunction newFunction);
   void attachDoubleClick(callbackFunction newFunction);
+  void attachTripleClick(callbackFunction newFunction);
   void attachPress(
       callbackFunction newFunction); // DEPRECATED, replaced by longPressStart,
                                      // longPressStop and duringLongPress
@@ -96,6 +98,7 @@ private:
   // These variables will hold functions acting as event source.
   callbackFunction _clickFunc = NULL;
   callbackFunction _doubleClickFunc = NULL;
+  callbackFunction _tripleClickFunc = NULL;
   callbackFunction _pressFunc = NULL;
   callbackFunction _longPressStartFunc = NULL;
   callbackFunction _longPressStopFunc = NULL;
